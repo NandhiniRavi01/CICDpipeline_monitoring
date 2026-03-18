@@ -1,61 +1,57 @@
 pipeline {
-agent any
+    agent any
 
+    stages {
 
-stages {
+        stage('Checkout') {
+            steps {
+                git url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git', branch: 'main'
+            }
+        }
 
-    stage('Checkout') {
-        steps {
-            git url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git', branch: 'main'
+        stage('Install') {
+            steps {
+                sh 'npm install'
+            }
+        }
+
+        stage('Start Mongo') {
+            steps {
+                sh 'docker run -d -p 27017:27017 --name test-mongo mongo:4.4 || true'
+            }
+        }
+
+        stage('Test') {
+            steps {
+                sh 'npm test'
+            }
+        }
+
+        stage('Build Docker') {
+            steps {
+                sh 'docker build -t nandhudocker01/ecommerce-backend:latest .'
+            }
+        }
+
+        stage('Push Docker') {
+            steps {
+                sh 'docker push nandhudocker01/ecommerce-backend:latest'
+            }
+        }
+
+        stage('Deploy K8s') {
+            steps {
+                sh 'kubectl apply -f k8s-files/'
+            }
         }
     }
 
-    stage('Install Dependencies') {
-        steps {
-            sh 'npm install'
+    post {
+        success {
+            echo '✅ SUCCESS'
+        }
+        failure {
+            echo '❌ FAILED'
         }
     }
-
-    stage('Run Tests') {
-        steps {
-            sh 'npm test'
-        }
-    }
-
-    stage('Start Minikube') {
-        steps {
-            sh 'minikube start'
-        }
-    }
-
-    stage('Deploy to Kubernetes') {
-        steps {
-            sh 'kubectl apply -f k8s-files/'
-        }
-    }
-
-    stage('Restart Deployment') {
-        steps {
-            sh 'kubectl rollout restart deployment ecommerce-backend'
-        }
-    }
-
-    stage('Verify') {
-        steps {
-            sh 'kubectl get pods'
-            sh 'kubectl get svc'
-        }
-    }
-}
-
-post {
-    success {
-        echo 'Deployment Successful'
-    }
-    failure {
-        echo 'Deployment Failed'
-    }
-}
-
-
 }
