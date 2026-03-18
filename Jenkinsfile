@@ -9,27 +9,28 @@ stages {
             git url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git', branch: 'main'
         }
     }
-stage('Install Dependencies') { 
-  steps { 
-    
-      sh 'npm install' 
+
+    stage('Install Dependencies') {
+        steps {
+            sh 'npm install'
+        }
     }
-  }
-  stage('Run Tests') {
-    steps { 
-      dir('tests') 
-      { 
-        sh 'npm test' 
-      }
+
+    stage('Run Tests') {
+        steps {
+            sh 'npm test'
+        }
     }
-  }
+
+    stage('Start Minikube') {
+        steps {
+            sh 'minikube start'
+        }
+    }
+
     stage('Deploy to Kubernetes') {
         steps {
-            {
-              sh 'minikube start'
-            
-                sh 'kubectl apply -f k8s-files/'
-            }
+            sh 'kubectl apply -f k8s-files/'
         }
     }
 
@@ -49,10 +50,10 @@ stage('Install Dependencies') {
 
 post {
     success {
-        echo '✅ Deployment Successful'
+        echo 'Deployment Successful'
     }
     failure {
-        echo '❌ Deployment Failed'
+        echo 'Deployment Failed'
     }
 }
 
