@@ -17,13 +17,16 @@ pipeline {
 
         stage('Start Mongo') {
             steps {
-                sh 'docker run -d -p 27017:27017 --name test-mongo mongo:4.4 || true'
+                sh '''
+                docker rm -f test-mongo || true
+                docker run -d -p 27017:27017 --name test-mongo mongo:4.4 --noauth
+                '''
             }
         }
 
         stage('Test') {
             steps {
-                sh 'npm test'
+                sh 'NODE_ENV=test npm test'
             }
         }
 
@@ -43,15 +46,6 @@ pipeline {
             steps {
                 sh 'kubectl apply -f k8s-files/'
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ SUCCESS'
-        }
-        failure {
-            echo '❌ FAILED'
         }
     }
 }
