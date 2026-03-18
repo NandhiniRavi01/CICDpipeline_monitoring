@@ -8,11 +8,10 @@ pipeline {
     stages {
 
         stage('Checkout') {
-            steps {
-                git 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
-            }
-        }
-
+    steps {
+        git branch: 'main', url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
+    }
+}
         stage('Install') {
             steps {
                 sh 'npm install'
