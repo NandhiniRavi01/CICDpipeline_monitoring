@@ -1,11 +1,15 @@
 pipeline {
     agent any
 
+    environment {
+        MONGO_URI = "mongodb://localhost:27018/ecommerce-test"
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
-                git url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git', branch: 'main'
+                git 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
             }
         }
 
@@ -16,35 +20,31 @@ pipeline {
         }
 
         stage('Start Mongo') {
-    steps {
-        sh '''
-        docker rm -f test-mongo || true
-        docker run -d -p 27018:27017 --name test-mongo mongo:4.4 --noauth
-        '''
-    }
-}
+            steps {
+                sh '''
+                docker rm -f test-mongo || true
+
+                docker run -d -p 27018:27017 \
+                --name test-mongo mongo:4.4 --noauth
+
+                echo "Waiting for MongoDB to start..."
+                sleep 10
+                '''
+            }
+        }
 
         stage('Test') {
             steps {
-                sh 'NODE_ENV=test npm test'
+                sh '''
+                echo "Running tests..."
+                NODE_ENV=test npm test
+                '''
             }
         }
 
-        stage('Build Docker') {
+        stage('Cleanup') {
             steps {
-                sh 'docker build -t nandhudocker01/ecommerce-backend:latest .'
-            }
-        }
-
-        stage('Push Docker') {
-            steps {
-                sh 'docker push nandhudocker01/ecommerce-backend:latest'
-            }
-        }
-
-        stage('Deploy K8s') {
-            steps {
-                sh 'kubectl apply -f k8s-files/'
+                sh 'docker rm -f test-mongo || true'
             }
         }
     }
