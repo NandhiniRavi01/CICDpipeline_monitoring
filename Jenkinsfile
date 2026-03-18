@@ -16,13 +16,13 @@ pipeline {
         }
 
         stage('Start Mongo') {
-            steps {
-                sh '''
-                docker rm -f test-mongo || true
-                docker run -d -p 27017:27017 --name test-mongo mongo:4.4 --noauth
-                '''
-            }
-        }
+    steps {
+        sh '''
+        docker rm -f test-mongo || true
+        docker run -d -p 27018:27017 --name test-mongo mongo:4.4 --noauth
+        '''
+    }
+}
 
         stage('Test') {
             steps {
