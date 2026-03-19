@@ -1,9 +1,7 @@
 pipeline {
     agent any
 
-    environment {
-        MONGO_URI = "mongodb://localhost:27018/ecommerce-test"
-    }
+   
 
     stages {
 
