@@ -44,30 +44,38 @@ pipeline {
             }
         }
 
-        stage('Run Tests') {
-            steps {
-                sh '''
-                docker rm -f test-backend || true
+       stage('Run Tests') {
+    steps {
+        sh '''
+        docker rm -f test-backend || true
 
-                docker run -d \
-                --name test-backend \
-                --network test-net \
-                -e NODE_ENV=test \
-                -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
-                nandhudocker01/ecommerce-backend:latest
+        docker run -d \
+        --name test-backend \
+        --network test-net \
+        -e NODE_ENV=test \
+        -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
+        nandhudocker01/ecommerce-backend:latest
 
-                echo "⏳ Waiting for backend..."
-                sleep 20
+        echo "⏳ Waiting for MongoDB readiness..."
 
-                echo "📜 Backend logs:"
-                docker logs test-backend
+        # Wait until Mongo is actually ready
+        for i in {1..10}; do
+          docker exec test-mongo mongosh --eval "db.adminCommand('ping')" && break
+          echo "Mongo not ready yet..."
+          sleep 5
+        done
 
-                echo "🧪 Running tests..."
-                docker exec test-backend npm test
-                '''
-            }
-        }
+        echo "⏳ Waiting for backend to stabilize..."
+        sleep 10
 
+        echo "📜 Backend logs:"
+        docker logs test-backend
+
+        echo "🧪 Running tests..."
+        docker exec test-backend npm test || (echo "❌ Tests failed. Logs:" && docker logs test-backend && exit 1)
+        '''
+    }
+}
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t $IMAGE_NAME .'
