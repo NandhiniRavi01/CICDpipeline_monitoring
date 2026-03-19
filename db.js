@@ -3,13 +3,13 @@ const mongoose = require("mongoose");
 const connectDB = async () => {
   const URI = process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce";
 
-  let retries = 5;
+  let retries = 10; // 🔥 increase retries
 
   while (retries) {
     try {
       await mongoose.connect(URI);
       console.log("✅ MongoDB Connected");
-      break;
+      return; // ✅ exit function
     } catch (err) {
       console.log("❌ MongoDB not ready, retrying...");
       retries--;
@@ -17,8 +17,9 @@ const connectDB = async () => {
     }
   }
 
-  if (!retries) {
-    console.error("❌ Could not connect to MongoDB");
+  console.error("❌ Could not connect to MongoDB");
+  // ❌ DO NOT crash in test
+  if (process.env.NODE_ENV !== "test") {
     process.exit(1);
   }
 };
