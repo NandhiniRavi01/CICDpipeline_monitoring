@@ -1,24 +1,23 @@
-// tests/api.test.js
 const request = require("supertest");
 const app = require("../server");
 const mongoose = require("mongoose");
 
-let token; // store JWT token for authorized requests
+let token;
 
-// Connect to a separate test database
+// ✅ FIX: use env OR fallback to docker service name
+const MONGO_URI =
+  process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce_test";
+
 beforeAll(async () => {
-  await mongoose.connect("mongodb://127.0.0.1:27017/ecommerce_test", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  });
+  await mongoose.connect(MONGO_URI);
 });
 
-// Drop database after each test to ensure isolation
 afterEach(async () => {
-  await mongoose.connection.db.dropDatabase();
+  if (mongoose.connection.db) {
+    await mongoose.connection.db.dropDatabase();
+  }
 });
 
-// Close DB connection after all tests
 afterAll(async () => {
   await mongoose.connection.close();
 });
@@ -26,23 +25,20 @@ afterAll(async () => {
 describe("Ecommerce API Tests", () => {
 
   test("Register User", async () => {
-   const res = await request(app)
-     .post("/api/register")
-     .send({
-       name: "test",
-       email: "test@test.com",
-       password: "123456"
-    });
+    const res = await request(app)
+      .post("/api/register")
+      .send({
+        name: "test",
+        email: "test@test.com",
+        password: "123456"
+      });
 
-  expect(res.statusCode).toBe(200);
-
-  // Your API returns the user object directly, so check res.body directly
-  expect(res.body).toHaveProperty("_id");
-  expect(res.body.email).toBe("test@test.com");
-});
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("_id");
+    expect(res.body.email).toBe("test@test.com");
+  });
 
   test("Login User", async () => {
-    // First, register user for login
     await request(app)
       .post("/api/register")
       .send({ name: "test", email: "test@test.com", password: "123456" });
@@ -58,7 +54,6 @@ describe("Ecommerce API Tests", () => {
   });
 
   test("Create Product", async () => {
-    // Register and login user to get token
     await request(app)
       .post("/api/register")
       .send({ name: "test", email: "test@test.com", password: "123456" });
@@ -83,7 +78,6 @@ describe("Ecommerce API Tests", () => {
   });
 
   test("Get Products", async () => {
-    // Add a product first
     await request(app)
       .post("/api/register")
       .send({ name: "test", email: "test@test.com", password: "123456" });
@@ -103,8 +97,7 @@ describe("Ecommerce API Tests", () => {
         image: "phone.jpg"
       });
 
-    const res = await request(app)
-      .get("/api/products");
+    const res = await request(app).get("/api/products");
 
     expect(res.statusCode).toBe(200);
     expect(res.body.length).toBe(1);
