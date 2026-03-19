@@ -51,33 +51,20 @@ pipeline {
 
         // ✅ TEST NEW IMAGE (not old one)
         stage('Run Tests') {
-            steps {
-                sh '''
-                docker rm -f test-backend || true
+    steps {
+        sh '''
+        docker rm -f test-backend || true
 
-                docker run -d \
-                --name test-backend \
-                --network test-net \
-                -e NODE_ENV=test \
-                -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
-                $IMAGE_NAME
-
-                echo "⏳ Waiting for backend..."
-                sleep 40
-
-                echo "📜 Backend logs:"
-                docker logs test-backend
-
-                echo "🧪 Running tests..."
-                docker exec test-backend npm test || (
-                  echo "❌ Container crashed. Logs:"
-                  docker logs test-backend
-                  exit 1
-                )
-                '''
-            }
-        }
-
+        docker run --rm \
+        --name test-backend \
+        --network test-net \
+        -e NODE_ENV=test \
+        -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
+        nandhudocker01/ecommerce-backend:latest \
+        npm test
+        '''
+    }
+}
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
