@@ -1,24 +1,22 @@
- pipeline {
+pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "nandhudocker01/ecommerce-backend:latest"
-        DOCKER_CREDENTIALS_ID = "dockerhub-cred"   // Jenkins credentials
+        IMAGE_NAME = "nandhudocker01/ecommerce-backend:latest"
+        DOCKER_CREDENTIALS_ID = "docker-cred"
     }
 
     stages {
 
-        stage('Checkout Code') {
+        stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Install') {
             steps {
-                sh '''
-                docker build -t $DOCKER_IMAGE .
-                '''
+                sh 'npm install'
             }
         }
 
@@ -39,6 +37,9 @@
                 --name test-mongo \
                 --network test-net \
                 mongo:4.4
+
+                echo "⏳ Waiting for MongoDB to start..."
+                sleep 15
                 '''
             }
         }
@@ -53,26 +54,36 @@
                 --network test-net \
                 -e NODE_ENV=test \
                 -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
-                $DOCKER_IMAGE
+                nandhudocker01/ecommerce-backend:latest
 
-                echo "Waiting for container..."
-                sleep 15
+                echo "⏳ Waiting for backend..."
+                sleep 20
 
+                echo "📜 Backend logs:"
+                docker logs test-backend
+
+                echo "🧪 Running tests..."
                 docker exec test-backend npm test
                 '''
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: "$DOCKER_CREDENTIALS_ID",
+                    credentialsId: "${DOCKER_CREDENTIALS_ID}",
                     usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
                     sh '''
                     echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                    docker push $DOCKER_IMAGE
+                    docker push $IMAGE_NAME
                     '''
                 }
             }
@@ -90,17 +101,10 @@
     post {
         always {
             sh '''
+            echo "🧹 Cleaning up..."
             docker rm -f test-backend || true
             docker rm -f test-mongo || true
             '''
-        }
-
-        success {
-            echo "✅ Pipeline Success: Build, Test, Deploy completed"
-        }
-
-        failure {
-            echo "❌ Pipeline Failed"
         }
     }
 }
