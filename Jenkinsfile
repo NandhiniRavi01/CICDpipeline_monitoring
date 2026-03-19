@@ -10,7 +10,7 @@
 
         stage('Checkout Code') {
             steps {
-                git branch: 'main', git 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
+                git branch: 'main', url: 'https://github.com/NandhiniRavi01/CICDpipeline_monitoring.git'
             }
         }
 
