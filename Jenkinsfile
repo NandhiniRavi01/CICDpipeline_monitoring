@@ -20,11 +20,16 @@ pipeline {
             }
         }
 
+        // ✅ BUILD FIRST
+        stage('Build Docker Image') {
+            steps {
+                sh 'docker build -t $IMAGE_NAME .'
+            }
+        }
+
         stage('Create Network') {
             steps {
-                sh '''
-                docker network create test-net || true
-                '''
+                sh 'docker network create test-net || true'
             }
         }
 
@@ -38,42 +43,38 @@ pipeline {
                 --network test-net \
                 mongo:4.4
 
-                echo "⏳ Waiting for MongoDB to start..."
-                sleep 15
+                echo "⏳ Waiting for MongoDB..."
+                sleep 20
                 '''
             }
         }
 
-       stage('Run Tests') {
-    steps {
-        sh '''
-        docker rm -f test-backend || true
-
-        docker run -d \
-        --name test-backend \
-        --network test-net \
-        -e NODE_ENV=test \
-        -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
-        nandhudocker01/ecommerce-backend:latest
-
-        echo "⏳ Waiting for MongoDB (simple wait)..."
-        sleep 25
-
-        echo "📜 Backend logs:"
-        docker logs test-backend
-
-        echo "🧪 Running tests..."
-        docker exec test-backend npm test || (
-          echo "❌ Container crashed. Logs:"
-          docker logs test-backend
-          exit 1
-        )
-        '''
-    }
-}
-        stage('Build Docker Image') {
+        // ✅ TEST NEW IMAGE (not old one)
+        stage('Run Tests') {
             steps {
-                sh 'docker build -t $IMAGE_NAME .'
+                sh '''
+                docker rm -f test-backend || true
+
+                docker run -d \
+                --name test-backend \
+                --network test-net \
+                -e NODE_ENV=test \
+                -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
+                $IMAGE_NAME
+
+                echo "⏳ Waiting for backend..."
+                sleep 40
+
+                echo "📜 Backend logs:"
+                docker logs test-backend
+
+                echo "🧪 Running tests..."
+                docker exec test-backend npm test || (
+                  echo "❌ Container crashed. Logs:"
+                  docker logs test-backend
+                  exit 1
+                )
+                '''
             }
         }
 
@@ -94,9 +95,7 @@ pipeline {
 
         stage('Deploy to Kubernetes') {
             steps {
-                sh '''
-                kubectl apply -f k8s-files/
-                '''
+                sh 'kubectl apply -f k8s-files/'
             }
         }
     }
