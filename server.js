@@ -17,18 +17,17 @@ app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 
-app.get("/", (req,res)=>{
+app.get("/", (req, res) => {
   res.send("Ecommerce MongoDB API Running");
 });
 
 module.exports = app;
 
-// ✅ ALWAYS connect DB
-connectDB();
-
-// ✅ Only skip listen in test
+// ✅ ONLY connect DB if not test
 if (process.env.NODE_ENV !== "test") {
-  app.listen(5000, () => {
-    console.log("🚀 Server running on port 5000");
+  connectDB().then(() => {
+    app.listen(5000, () => {
+      console.log("🚀 Server running on port 5000");
+    });
   });
 }
