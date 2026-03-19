@@ -1,4 +1,3 @@
-// server.js
 const express = require("express");
 const cors = require("cors");
 const connectDB = require("./db");
@@ -22,14 +21,14 @@ app.get("/", (req,res)=>{
   res.send("Ecommerce MongoDB API Running");
 });
 
-// Export app for Supertest
 module.exports = app;
 
-// Only start server when NOT testing
+// ✅ ALWAYS connect DB
+connectDB();
+
+// ✅ Only skip listen in test
 if (process.env.NODE_ENV !== "test") {
-  connectDB().then(() => {
-    app.listen(5000, () => {
-      console.log("🚀 Server running on port 5000");
-    });
+  app.listen(5000, () => {
+    console.log("🚀 Server running on port 5000");
   });
 }
