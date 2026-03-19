@@ -6,7 +6,7 @@ let token;
 
 // ✅ FIX: use env OR fallback to docker service name
 const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce_test";
+  process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce";
 
 beforeAll(async () => {
   await mongoose.connect(MONGO_URI);
