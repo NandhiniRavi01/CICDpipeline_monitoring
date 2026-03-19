@@ -1,26 +1,7 @@
 const request = require("supertest");
 const app = require("../server");
-const mongoose = require("mongoose");
 
 let token;
-
-// ✅ FIX: use env OR fallback to docker service name
-const MONGO_URI =
-  process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce";
-
-beforeAll(async () => {
-  await mongoose.connect(MONGO_URI);
-});
-
-afterEach(async () => {
-  if (mongoose.connection.db) {
-    await mongoose.connection.db.dropDatabase();
-  }
-});
-
-afterAll(async () => {
-  await mongoose.connection.close();
-});
 
 describe("Ecommerce API Tests", () => {
 
