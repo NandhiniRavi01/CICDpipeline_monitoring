@@ -56,23 +56,18 @@ pipeline {
         -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
         nandhudocker01/ecommerce-backend:latest
 
-        echo "⏳ Waiting for MongoDB readiness..."
-
-        # Wait until Mongo is actually ready
-        for i in {1..10}; do
-          docker exec test-mongo mongosh --eval "db.adminCommand('ping')" && break
-          echo "Mongo not ready yet..."
-          sleep 5
-        done
-
-        echo "⏳ Waiting for backend to stabilize..."
-        sleep 10
+        echo "⏳ Waiting for MongoDB (simple wait)..."
+        sleep 25
 
         echo "📜 Backend logs:"
         docker logs test-backend
 
         echo "🧪 Running tests..."
-        docker exec test-backend npm test || (echo "❌ Tests failed. Logs:" && docker logs test-backend && exit 1)
+        docker exec test-backend npm test || (
+          echo "❌ Container crashed. Logs:"
+          docker logs test-backend
+          exit 1
+        )
         '''
     }
 }
