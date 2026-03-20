@@ -1,7 +1,7 @@
 pipeline {
 agent any
 
-```
+
 environment {
     IMAGE_NAME = "nandhudocker01/ecommerce-backend:latest"
     DOCKER_CREDENTIALS_ID = "docker-cred"
@@ -100,6 +100,6 @@ post {
         '''
     }
 }
-```
+
 
 }
