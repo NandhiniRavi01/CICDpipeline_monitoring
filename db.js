@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const connectDB = async () => {
-  const URI = process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce";
+  const URI = process.env.MONGO_URI || "mongodb://mongo:27017/ecommerce_test";
 
   let retries = 10; // 🔥 increase retries
 
