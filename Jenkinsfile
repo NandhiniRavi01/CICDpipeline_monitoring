@@ -55,13 +55,9 @@ pipeline {
         sh '''
         docker rm -f test-backend || true
 
-        docker run --rm \
-        --name test-backend \
-        --network test-net \
-        -e NODE_ENV=test \
-        -e MONGO_URI=mongodb://test-mongo:27017/ecommerce_test \
-        nandhudocker01/ecommerce-backend:latest \
-        npm test
+        docker run -d -p 5001:5000 --network test-net -e MONGO_URI=mongodb://mongo:27017/ecommerce-test --name test-backend nandhudocker01/ecommerce-backend
+
+        docker exec -it test-backend npm test
         '''
     }
 }
