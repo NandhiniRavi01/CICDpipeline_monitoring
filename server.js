@@ -21,9 +21,10 @@ app.get("/", (req, res) => {
   res.send("Ecommerce MongoDB API Running");
 });
 
+// ✅ export app ALWAYS
 module.exports = app;
 
-// ✅ ONLY connect DB if not test
+// ✅ only start server if NOT test
 if (process.env.NODE_ENV !== "test") {
   connectDB().then(() => {
     app.listen(5000, () => {
