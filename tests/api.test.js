@@ -10,7 +10,7 @@ jest.setTimeout(30000);
 // 🔥 FORCE DB connection BEFORE ANY TEST
 beforeAll(async () => {
   process.env.NODE_ENV = "test";
-  process.env.MONGO_URI = "mongodb://mongo:27017/ecommerce-test";
+  process.env.MONGO_URI = "mongodb://test-mongo:27017/ecommerce-test";
 
   await connectDB();
 
